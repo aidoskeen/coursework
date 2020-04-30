@@ -18,5 +18,17 @@
     <ClCompile Include="CourseWork_Aidos_Alimkhan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="room_source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dormitory_source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="student_source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="service_source.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
