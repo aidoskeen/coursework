@@ -5,244 +5,142 @@
 #include <cstdlib>
 #include <ctime>
 #include <iomanip>
-
+#include <windows.h> 
+#include "room.h"
+#include "dormitory.h"
+#include "student.h"
+#include "services.h"
 using namespace std;
-class room {
-protected:
-	int room_num;
-	char room_type[10];
-	int room_cost;
-public:
-	room() {
-		room_num = 0;
-		strcpy_s(room_type, "N/A");
-		room_cost = 110;
-	}
 
-};
 
-class student {
-protected:
-	char name[50];
-	char gender[30];
-	char nationality[30];
-	char type_of_student[20];
-	int student_id;
-public:
-	student(){
-		strcpy_s(name, "N/A");
-		strcpy_s(gender, "N/A");
-		strcpy_s(nationality, "N/A");
-		strcpy_s(type_of_student, "N/A");
-		student_id = 0;
-		
-	}
-	
-	
-};
+void main_menu();//function for creating main menu
 
-class dormitory :protected room, protected student {
-protected:
-	int num_of_rooms;
-	int num_of_dorm;
-	char address[30];
-public:
-	dormitory() {
-		num_of_rooms = 0;
-		num_of_dorm = 0;
-		strcpy_s(address, "unknown");
-	}
-	void student_register();
-	void show_resident();
-	int id_ret() {
-		return student_id;
-	}
+void get_place() { // function for recording student's data to dormitory.dat file
+	system("cls");
+	fstream file;	//used for reading/writing operations with files
+	fstream file2;
+	student s;
+	file.open("dormitory.dat", ios::out | ios::app);
+	file2.open("dormitory.dat", ios::out | ios::app);
+	s.student_register();
 	
-};
-void dormitory::student_register() {
 	int inp;
-	cout << "Hello! Please, enter your student id:";
-	cin >> student_id;
-	cout << "\nEnter your name and surname:";
-	cin.ignore();
-	cin.getline(name, 50);
-	cout << "\nYour gender:";
-	cout << "\n 1.Male   | 2.Female";
-	cin >> inp;
-	switch (inp) {
-	case 1:strcpy_s(gender,"male") ; break;
-	case 2:strcpy_s(gender, "female"); break;
-	}
-	cout << "\nEnter your nationality:";
-	cin.ignore();
-	cin.getline(nationality, 30);
-	cout << "Please, choose one of these options:";
-	cout << "\n1.I am full-time student.";
-	cout << "\n2.I am exchange student.";
-	cin >> inp;
-	switch (inp) {
-	case 1: cout<<"\nAs you are full-time student, you will live in Dormitory N.1"; 
-		strcpy_s(type_of_student, "full-time");
-		strcpy_s(address, "Sauletekio 25");
-		num_of_dorm = 1;
-		break;
-	case 2: cout << "\nAs you are exchange student, you will live in Dormitory N.2"; 
-		strcpy_s(type_of_student, "exchange");
-		strcpy_s(address, "Sauletekio 39");
-		num_of_dorm = 2; break;
-	}
 	cout << "\nPlease, choose type of room:";
 	cout << "\n1.Single Person room. Cost is 150 euro.";
-	cout << "\n2.Room for 2 people. Cost is 110 euro.";
+	cout << "\n2.Room for 2 people. Cost is 110 euro.\n";
 	cin >> inp;
-	switch (inp)
-	{
-	case 1:strcpy_s(room_type, "Single"); room_cost = 150;
-		cout << "\nChoose your room number(1,11,21,31,41)";
-		cin >> room_num;
-		while (room_num != 1 || room_num != 11 || room_num != 21 || room_num != 31 || room_num != 41) {
-			cout << "\nYour entered invalid room number. Enter correct room number:";
-			cin >> room_num;
+	switch (inp) {
+	case 1: {int n;
+		
+		for(;;)//loop is used in order to insure uniqness of rooms
+		{
+			bool flag = false;
+			srand((int)time(0)); //rooms are given randomly
+			n = (rand() %5) + 1;
+			while (file2.read((char*)&s, sizeof(student))) {//reading from a file
+				if (s.ret_room() == n)//check whether this room already exist in file
+				{
+					flag = true;
+				}
+			}
+			file2.close();
+			if (flag == false) {
+				student st(n, "single", 150);
+				s = st;
+				file.write((char*)&s, sizeof(student));//writing into file
+				cout << "Your room is " << n;
+				break;
+			}
 		}
 		break;
-	case 2:strcpy_s(room_type, "Double"); room_cost = 110;
-		cout << "\Choose your room number\n1st floor:2-10 \n2nd floor:12-20;\n3rd floor: 22-30 \n4th floor: 32-40; \n5th floor 42-50";
-		cin >> room_num;
-		while (room_num < 2 || room_num>50 || room_num ==11 || room_num ==21 || room_num == 31 || room_num ==41) {
-			cout << "\nYou entered invalid room number. Enter coorect room number";
-			cin >> room_num;
+	}
+	case 2: {int n;
+		for (;;)
+		{
+			int count = 0;
+			srand((int)time(0));
+			n = (rand() % 50) + 5;
+			while (file2.read((char*)&s, sizeof(student))) {
+				if (s.ret_room() == n)
+				{
+					count++;
+				}
+			}
+			file2.close();
+			if (count <= 2) {
+				student st(n, "double", 110);
+				s = st;
+				file.write((char*)&s, sizeof(student));
+				cout << "Your room is " << n;
+				break;
+			}
 		}
-		 break;
-	default:break;
+		break;
 	}
-}
-void dormitory::show_resident() {
-	cout << "Resident ID: " << student_id;
-	cout << "\nName of resident: " << name;
-	cout << "\nGender: " << gender;
-	cout << "\nNationality:" << nationality;
-	cout << "\nStudy type:" << type_of_student;
-	cout << "\nDormitory: Bendrabutis N." << num_of_dorm;
-	cout << "Room number:" << room_num;
-	cout << "\nRoom type:" << room_type;
-	cout << "\nYou pay " << room_cost << " euro for this room";
-	cout <<"\n"<< address;
-}
-
-
-class service:protected dormitory{
-	char day[10];
-	char service_type[20];
-	char problem[100];
-	int problem_id;
-public:
-	service() {
-		strcpy_s(day, "Monday");
-		strcpy_s(service_type, "Not selected");
-		strcpy_s(problem, "No problem");
-		problem_id = 0;
 	}
-	void service_info();
-	void problem_info();
-	int ret_probID();
-	void show_service();
-};
-void service::service_info() {
-	int n;
-	cout << "Number of your Dormitory:";
-	cin >> num_of_dorm;
-	cout << "Enter your room number:";
-	cin >> room_num;
-	cout << "Choose what do you need:";
-	cout << "1. Room cleaning";
-	cout << "2. Request new laundry";
-	cin >> n;
-	
-	switch (n)
-	{
-	case 1:strcpy_s(service_type, "Cleaning"); cout << "When you want to your room be cleaned?"; break;
-	case 2:strcpy_s(service_type, "Laundry"); cout << "When you want new laundry?"; break;
-	default:return; break;
-	}
-	srand((int)time(0));
-	problem_id = (rand() % 1000) + 1;
-	cin >> n;
-	cout << "\nMonday";
-	cout << "\nTuesday";
-	cout << "\nWednesday";
-	cout << "\nThursday";
-	cout << "\nFriday";
-	switch (n) {
-	case 1:strcpy_s(day, "Monday"); break;
-	case 2:strcpy_s(day, "Tuesday"); break;
-	case 3:strcpy_s(day, "Wednesday"); break;
-	case 4:strcpy_s(day, "Thursday"); break;
-	case 5:strcpy_s(day, "Friday"); break;
-	default:return; break;
-	}
-}
-
-void service::problem_info() {
-	cout << "Number of your Dormitory:";
-	cin >> num_of_dorm;
-	cout << "\nEnter your room number:";
-	cin >> room_num;
-	cout << "\nPlease, explain your problem in two-three words(need to fix the door, fix the shower, problem with internet etc.)";
-	srand((int)time(0));
-	problem_id = (rand() % 1000) + 1;
-	cin.ignore();
-	cin.getline(problem, 100);
-}
-int service::ret_probID() {
-	return problem_id;
-}
-void service::show_service() {
-	cout << setw(10) << problem_id << setw(10) << service_type << setw(10) << day << endl;
-}
-
-
-
-
-
-void main_menu();
-
-void get_place() {
-	system("cls");
-	fstream file;
-	dormitory d;
-	file.open("dormitory.dat", ios::out | ios::app);
-	d.student_register();
-	file.write((char*)&d, sizeof(dormitory));
+   
 	file.close();
 	cout << "\nYour place in dormitory successfully reserved. \nPlease, bring your ID with you when you get to the dormitory.";
-	cin.ignore();
+	cout << "\nPress ENTER to return to main menu..";
+	(void)_getch();
+	
 	main_menu();
 }
-void show_info() {
+void correct_data()//function for changing the data within dat file
+{
+	student s;
+	fstream file;
+	int n;
+	bool flag = false;
+	system("cls");
+	cout << "\n\n\tCorrection ";
+	cout << "\nPlease enter id of student\n";
+	cin >> n;
+	file.open("dormitory.dat", ios::in | ios::out);
+	while (file.read((char*)&s, sizeof(dormitory)) && flag == false)
+	{
+		if (s.id_ret() == n)
+		{
+			s.show_resident();
+			cout << "\nPlease Enter new data:" << endl;
+			s.student_register();
+			int pos = -1 * static_cast<int>(sizeof(s));
+			file.seekp(pos, ios::cur);//used for setting position
+			file.write((char*)&s, sizeof(student));
+			cout << "\n\n\t Data updated";
+			flag = true;
+		}
+	}
+	file.close();
+	if (flag == false)
+		cout << "\n\n  Not Found ";
+	cout << "\nPress ENTER to return to main menu..";
+	(void)_getch();
+}
+
+void show_info() {  //reads data from file and shows it
 	system("cls");
 	int n;
 	cout << "Enter your id: ";
 	cin >> n;
-	
-	dormitory d;
 	student s;
 	fstream file;
 	bool flag = false;
 	cout << "\nInformation about resident.";
 	
 	file.open("dormitory.dat", ios::in);
-	while (file.read((char*)&d, sizeof(dormitory)))
+	while (file.read((char*)&s, sizeof(student)))
 	{
-		if (d.id_ret()==n)
+		if (s.id_ret()==n)
 		{
-				d.show_resident();
+				s.show_resident();
 			flag = true;
 		}
 	}
 
 	file.close();
 	if (flag == false) {
-		cout << "\nSorry, there is no such resident. Do you want to register and get a place? If yes type 'y'; If no type n";
+		cout << "\nSorry, there is no such resident. Do you want to register and get a place? \nIf yes type 'y'; \nIf no type n.\nInput: ";
 		char yn;
 		cin >> yn;
 		switch (yn)
@@ -252,72 +150,109 @@ void show_info() {
 		case 'n':
 		case'N':main_menu(); break;
 		default:
-			cout << "\nInvalid input. You will be directed to main menu"; cin.ignore(); main_menu(); break;
+			cout << "\n\aInvalid input. You will be redirected to main menu"; (void)_getch(); main_menu(); break;
 		}
 	
 	}
+	cout << "\nIf some data is not proper,you can correct it.\nIf you want to do so, please type 1.\n If you want to go back to main menu type 2.\nYour choice: ";
+	cin >> n;
+	switch (n) {
+	case 1:correct_data(); break;
+	case 2: main_menu(); break;
+	default:main_menu();
+	}
+	
 }
-void correct_data()
+
+void leave_dorm()//this function deletes record from dormitory.dat file
 {
-	dormitory d;
+
+	student s;
 	fstream file;
-	int n, found = 0;
+	fstream file_2;
+	int n;
+	bool flag = false;;
 	system("cls");
-	cout << "\n\n\tCorrection ";
-	cout << "\nPlease enter id of student";
+	cout << "\tIt is so sad that you are going to leave dormitory. \nPlease enter your id:";
 	cin >> n;
 	file.open("dormitory.dat", ios::in | ios::out);
-	while (file.read((char*)&d, sizeof(dormitory)) && found == 0)
+
+	file_2.open("dormitory1.dat", ios::out);
+	file.seekg(0, ios::beg);
+	while (file.read((char*)&s, sizeof(student)))
 	{
-		if (d.id_ret() == n)
-		{
-			d.show_resident();
-			cout << "\nPlease Enter new data:" << endl;
-			d.student_register();
-			int pos = -1 * static_cast<int>(sizeof(d));
-			file.seekp(pos, ios::cur);
-			file.write((char*)&d, sizeof(dormitory));
-			cout << "\n\n\t Updated";
-			found = 1;
+		if (s.id_ret() != n) {
+			file_2.write((char*)&s, sizeof(student));//records rewritten into new file
 		}
+		else { flag = true; }
+	}
+
+
+	file_2.close();
+	file.close();
+	char prev_name[] = "dormitory1.dat";
+	char new_name[] = "dormitory.dat";
+	remove(new_name);
+	rename(prev_name, new_name); //renaming new file 
+	if (flag)
+		cout << "\n\n\tYou successfully logged out from dormitory system.";
+	else
+		cout << "\n\nSorry, your data cannot be found.";
+	cout << "\nPress ENTER to return to main menu..";
+	(void)_getch();
+	main_menu();
+}
+void services();
+void show_service() { //shows data from service.dat file
+	service s;
+	fstream file;
+	file.open("service.dat", ios::in);
+	cout << "Service id"<<setw(20)<<"Service"<<setw(13)<<"Problem"<<setw(12) <<"room"<<setw(8)<<"dorm" <<setw(9)<< "Time";
+	while (file.read((char*)&s, sizeof(service)))
+	{
+		s.display_data();
+		
 	}
 	file.close();
-	if (found == 0)
-		cout << "\n\n  Not Found ";
-	cin.ignore();
+	cout << "Press ENTER..";
+	(void)_getch();
+	services();
 }
-
-
-void main_menu() {
-	int inp;;
-	cout << "\tMAIN MENU";
-	cout << "\n\tServices";
-	cout << "\n\tMy info";
-	cout << "\n\tGet a room in the dormitory";
-	cin >> inp;
-	switch (inp)
+void all_data()
+{
+	system("cls");
+	student s;
+	fstream file;
+	file.open("dormitory.dat", ios::in);
+	cout << "\n\n\t\tAll data about residents\n\n";
+	while (file.read((char*)&s, sizeof(student)))
 	{
-	case 1:
-	case 2:show_info(); break;
-	case 3: get_place(); break;
-
-	default:
-		break;
+		s.show_resident();
+		cout << "\n\n******************************************\n";
 	}
+	file.close();
+	cout << "\nPress ENTER to return to main menu..";
+	(void)_getch();
+	main_menu();
 }
-void services() {
+
+void services() { //services menu
 	system("cls");
 	fstream file;
 	int n;
 	service s;
 	file.open("service.dat", ios::out | ios::app);
-	cout << "Service";
-	cout << "Report an issue";
+	cout << "\n\t\t\t\t          <1> Service <1>\n";
+	cout << "\n\t\t\t\t       <2>List of issues <2>\n";
+	cout << "\n\t\t\t\t       <3>Report an issue<3>\n";
+	cout << "\n\t\t\t\t   <4>All data about residents<4>";
+	cout << "\n\t\t\t\t  (Available only for personnel)\n";
+	cout << "\n\t\t\t\t         <5>Go back <5>\nChoose number: ";
 	cin >> n;
 	switch (n)
 	{
-	case 1:	s.service_info();
-		if (s.ret_probID() != 0) {
+	case 1:	system("cls"); s.service_info();
+		if (s.id_ret() != 0) {
 			file.write((char*)&s, sizeof(service));
 			cout << "\nYour request is accepted.";
 		}
@@ -326,8 +261,9 @@ void services() {
 			return;
 		}
 		break;
-	case 2:s.problem_info();
-		if (s.ret_probID() != 0) {
+	case 2:system("cls"); show_service(); break;
+	case 3:s.problem_info();
+		if (s.id_ret() != 0) {
 			file.write((char*)&s, sizeof(service));
 			cout << "\nYour report is sent to administration. It will be reviewed soon.";
 		}
@@ -336,17 +272,140 @@ void services() {
 			return;
 		}
 		break;
+	case 4: {
+		string pass="password";
+		string inp;
+		cout << "Enter password:";
+		cin >> inp;
+		if (inp==pass)
+			all_data();
+		else
+			cout << "Incorrect password.";
+		break; }
+	case 5:main_menu();
 	default:
-		return; break;
+		break;
 	}
 	
 	file.close();
-	cin.ignore();
+	cout << "\nPress ENTER to return to main menu..";
+	(void)_getch();
+	main_menu();
+}
+void dorm_data() {//shows data about dormitory
+	system("cls");
+	int n;
+
+	cout << "Please, choose dormitory in order to get information:\n";
+	cout << "\n< 1 > Bendrabutis N.1 < 1 >";
+	cout << "\n< 2 > Bendrabutis N.2 < 2 >\nYour input 1/2: ";
+	cin >> n;
+	switch (n)
+	{
+	case 1: {dormitory d("Sauletekio 25", 1, 50); d.display_data();
+		cout << "\nDo you want to see address on map?\n\t<1> If YES type 1,\n\t <2> if NO type any number;\n Input: ";
+		cin >> n;
+		if (n == 1) {
+			char url[100] = "https://bit.ly/2XTuBoD";
+			ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);//opens browser
+		}
+		break;
+	}
+	case 2: {dormitory dor("Sauletekio 39", 2, 50); dor.display_data();
+		cout << "\n Do you want to see address on map?If yes type 1\nInput: ";
+		cin >> n;
+		if (n == 1) {
+			char url[100] = "https://bit.ly/2VqWVgt";
+			ShellExecute(NULL, "open", url, NULL, NULL, SW_SHOWNORMAL);
+		}
+		break;
+	}
+	default:break;
+	}
+	cout << "\nPress ENTER to return to main menu..";
+	(void)_getch();
+	main_menu();
+}
+void room_info() {//shows infor about room
+	system("cls");
+	int n;
+	cout << "Here you can find information about rooms.";
+	cout << "\nPlease, choose type of room you want to get information about:";
+	cout << "\n\n\t<1> Single-bed <1>";
+	cout << "\n\t<2> Double-bed <2>\n Select option 1/2: ";
+	cin >> n;
+	switch (n) {
+	case 1: {
+		system("cls");
+		room r("Single", 150); cout<<r;
+		cout << "\n\n\t-----------------------------------------------------------------------------";
+		cout << "\n\tSingle rooms are specially built for students who prefer live alone and feel\n";
+		cout<<"\tcomfortable in silence.\n\tThey have all basic furniture: 1 bed, 1 cupboard, 1 table,1 chair and a fridge.";
+		cout << "\n\t-----------------------------------------------------------------------------";
+		cout << "\n\tDo you want to see photo of room?\n\t<1> If YES, type 1;\n\t<2> if NO type 2: \nInput:  ";
+		cin >> n;
+		if (n == 1) {
+			char file[50] = "image1.jpg"; ShellExecute(0, "open", file, NULL, NULL, SW_NORMAL);//opens picture
+		}
+		break;
+	}
+	case 2: {
+		system("cls");
+		room r("Double", 110); cout<<r;
+		cout << "\n\n\t--------------------------------------------------------------------------------";
+		cout << "\n\tDouble rooms are built for 2 people.\n\tThey have all basic furniture: 2 beds, 1 cupboard, 2 tables,2 chairs and a fridge.";
+		cout << "\n\t----------------------------------------------------------------------------------";
+		cout << "\n\tDo you want to see photo of room? \n\t<1> if YES, type 1; \n\t<2> if NO, any number: \nInput: ";
+	
+		cin >> n;
+		if (n == 1) {
+			char file[50] = "image2.jpg"; ShellExecute(0, "open", file, NULL, NULL, SW_NORMAL);
+		}
+		break;
+	}
+	}
+	cout << "\nPress ENTER to return to main menu..";
+	(void)_getch();
 	main_menu();
 }
 
 
+void main_menu() {
+	system("cls");
+	int inp;;
+	cout << "\t\t\t\t\t         MAIN MENU\n";
+	cout << "\n\t\t\t\t<1> Get information about dormitory <1> \n";
+	cout << "\n\t\t\t\t  <2> Get information about rooms <2>   \n";
+	cout << "\n\t\t\t\t  <3> Get a room in the dormitory <3>  \n";
+	cout << "\n\t\t\t\t           <4>  Services <4>           \n";
+	cout << "\n\t\t\t\t           <5>  My data  <5>          \n";
+	cout << "\n\t\t\t\t      <6> Leave the dormitory <6>      \n";
+	cout << "\n\t\t\t\t             <7>  QUIT  <7>             ";
+	cout << "\n\t\tSelect one option:";
+
+	cin >> inp;
+	switch (inp)
+	{
+	case 1:dorm_data(); break;
+	case 2: room_info(); break;
+	case 3: get_place(); break;
+	case 4: services(); break;
+	case 5:show_info(); break;
+	case 6:leave_dorm(); break;
+	case 7: EXIT_SUCCESS;
+	default:
+		break;
+	}
+}
+
+
 int main() {
+	cout << "\n\n\n\n\n\n";
+	cout << "\t\t\t\t\t\t\tLOADING....\n\t";
+	for (int i = 0; i < 100; i++) { 
+		Sleep(10);//used for output with delay
+		cout << "*";
+}
 	main_menu();
 }
 
